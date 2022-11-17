@@ -105,9 +105,15 @@ _esp32_validations = {
 
 def validate_gpio_pin(value):
     value = _translate_pin(value)
+    board = CORE.data[KEY_ESP32][KEY_BOARD]
+    board_pins = boards.ESP32_BOARD_PINS.get(board, {})
+
+    if value in board_pins.values():
+        return value
+
     variant = CORE.data[KEY_ESP32][KEY_VARIANT]
     if variant not in _esp32_validations:
-        raise cv.Invalid("Unsupported ESP32 variant {variant}")
+        raise cv.Invalid(f"Unsupported ESP32 variant {variant}")
 
     return _esp32_validations[variant].pin_validation(value)
 
@@ -121,7 +127,7 @@ def validate_supports(value):
     is_pulldown = mode[CONF_PULLDOWN]
     variant = CORE.data[KEY_ESP32][KEY_VARIANT]
     if variant not in _esp32_validations:
-        raise cv.Invalid("Unsupported ESP32 variant {variant}")
+        raise cv.Invalid(f"Unsupported ESP32 variant {variant}")
 
     if is_open_drain and not is_output:
         raise cv.Invalid(

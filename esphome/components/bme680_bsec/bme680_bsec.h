@@ -65,8 +65,8 @@ class BME680BSECComponent : public Component, public i2c::I2CDevice {
   void publish_(const bsec_output_t *outputs, uint8_t num_outputs);
   int64_t get_time_ns_();
 
-  void publish_sensor_state_(sensor::Sensor *sensor, float value, bool change_only = false);
-  void publish_sensor_state_(text_sensor::TextSensor *sensor, const std::string &value);
+  void publish_sensor_(sensor::Sensor *sensor, float value, bool change_only = false);
+  void publish_sensor_(text_sensor::TextSensor *sensor, const std::string &value);
 
   void load_state_();
   void save_state_(uint8_t accuracy);
@@ -77,12 +77,17 @@ class BME680BSECComponent : public Component, public i2c::I2CDevice {
   /* operating mode of sensor */
   uint8_t op_mode;
   bool sleep_mode;
+
+  void queue_push_(std::function<void()> &&f) { this->queue_.push(std::move(f)); }
+
   bsec_library_return_t bsec_status_{BSEC_OK};
   int8_t bme680_status_{BME68X_OK};
 
   int64_t last_time_ms_{0};
   uint32_t millis_overflow_counter_{0};
   int64_t next_call_ns_{0};
+
+  std::queue<std::function<void()>> queue_;
 
   ESPPreferenceObject bsec_state_;
   uint32_t state_save_interval_ms_{21600000};  // 6 hours - 4 times a day
